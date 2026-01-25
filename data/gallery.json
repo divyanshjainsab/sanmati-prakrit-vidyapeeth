@@ -1,0 +1,11 @@
+[
+  { "id": 1, "src": "https://drive.google.com/uc?export=view&id=1lXsWKdqTz6af037NZGwtoRp45c0qrEz-", "alt": "Image 1" },
+  { "id": 2, "src": "/images/hero-desktop/2.jpeg", "alt": "Image 2" },
+  { "id": 3, "src": "/images/hero-desktop/3.jpeg", "alt": "Image 3" },
+  { "id": 4, "src": "/images/hero-desktop/4.jpeg", "alt": "Image 4" },
+  { "id": 5, "src": "/images/hero-desktop/5.jpeg", "alt": "Image 5" },
+  { "id": 6, "src": "/images/hero-desktop/6.jpeg", "alt": "Image 6" },
+  { "id": 7, "src": "/images/hero-desktop/7.jpeg", "alt": "Image 7" },
+  { "id": 8, "src": "/images/hero-desktop/8.jpeg", "alt": "Image 8" },
+  { "id": 9, "src": "/images/hero-desktop/9.jpeg", "alt": "Image 9" }
+]
