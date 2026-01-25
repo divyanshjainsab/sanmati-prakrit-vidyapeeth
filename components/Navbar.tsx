@@ -18,10 +18,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Gallery", href: "/gallery" },
-    { name: "Contact", href: "/contact" },
-    { name: "Inquiry", href: "/inquiry" },
-    { name: "About Us", href: "/about-us" },
-    { name: "Verify Certificate", href: "/certificateverify" },
+    { name: "🟢📞 9826181265", href: "https://wa.link/6zkrpq" },
   ];
 
 const logo = "/images/logo.jpeg";
