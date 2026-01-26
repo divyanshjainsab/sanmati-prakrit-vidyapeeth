@@ -1,7 +1,7 @@
 import TextSectionComponent from "@/components/TextSectionComponent";
 
 export default function TextSection(){
-    return <>0
+    return <>
         <TextSectionComponent
             heading="सभी उपलब्ध फ़ोटो देखने के लिए"
             paragraph="👇"
