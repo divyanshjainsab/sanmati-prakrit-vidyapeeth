@@ -1,9 +1,11 @@
-import Image from "next/image";
+import Hero from "@/components/Hero";
+import TextSection from "@/components/TextSection";
 
 export default function Home() {
   return (
-    <h1 className="text-3xl font-bold text-green-600">
-      Dev mode is running 🚀
-    </h1>
+    <>
+      <Hero />
+      <TextSection />
+    </>
   );
 }
