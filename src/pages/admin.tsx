@@ -34,6 +34,33 @@ export default function AdminPanel() {
   const [auth, setAuth] = useState(false);
   const [credentials, setCredentials] = useState({ username: "", password: "" });
 
+  const addTextSection = () => {
+    setConfig((prev) => {
+      if (!prev) return prev;
+      const newConfig = { ...prev, textSections: [...prev.textSections] };
+      newConfig.textSections.push({
+        heading: "",
+        paragraph: "",
+        bgColor: "#ffffff",
+        textColor: "#000000",
+        buttonText: "",
+        buttonLink: "",
+        className: "",
+        boldText: "",
+      });
+      return newConfig;
+    });
+  };
+
+  const removeTextSection = (idx: number) => {
+    setConfig((prev) => {
+      if (!prev) return prev;
+      const newConfig = { ...prev, textSections: [...prev.textSections] };
+      newConfig.textSections.splice(idx, 1);
+      return newConfig;
+    });
+  };
+
   useEffect(() => {
     axios
       .get("/api/siteconfig")
@@ -349,6 +376,114 @@ export default function AdminPanel() {
           Add Social
         </button>
       </section>
+
+      {/* Text Sections */}
+      <section className="border p-4 rounded shadow space-y-3">
+        <h3 className="font-bold text-lg">Text Sections</h3>
+        {config.textSections.map((sec, idx) => (
+          <div
+            key={idx}
+            className="border p-3 rounded space-y-2 relative bg-gray-50"
+          >
+            <button
+              onClick={() => removeTextSection(idx)}
+              className="absolute top-2 right-2 text-red-600 font-bold"
+            >
+              ×
+            </button>
+
+            <label className="block">
+              Heading:
+              <input
+                type="text"
+                value={sec.heading || ""}
+                onChange={(e) => updateField(["textSections", idx, "heading"], e.target.value)}
+                className="border p-2 w-full rounded mt-1"
+              />
+            </label>
+
+            <label className="block">
+              Bold Text:
+              <input
+                type="text"
+                value={sec.boldText || ""}
+                onChange={(e) => updateField(["textSections", idx, "boldText"], e.target.value)}
+                className="border p-2 w-full rounded mt-1"
+              />
+            </label>
+
+            <label className="block">
+              Paragraph:
+              <textarea
+                value={sec.paragraph || ""}
+                onChange={(e) => updateField(["textSections", idx, "paragraph"], e.target.value)}
+                className="border p-2 w-full rounded mt-1"
+                rows={3}
+              />
+            </label>
+
+            <div className="flex gap-4 mt-2 flex-wrap">
+              <label>
+                Background Color:
+                <input
+                  type="color"
+                  value={sec.bgColor || "#ffffff"}
+                  onChange={(e) => updateField(["textSections", idx, "bgColor"], e.target.value)}
+                  className="ml-2 w-12 h-8 p-0 border-none"
+                />
+              </label>
+
+              <label>
+                Text Color:
+                <input
+                  type="color"
+                  value={sec.textColor || "#000000"}
+                  onChange={(e) => updateField(["textSections", idx, "textColor"], e.target.value)}
+                  className="ml-2 w-12 h-8 p-0 border-none"
+                />
+              </label>
+            </div>
+
+            <label className="block mt-2">
+              Button Text:
+              <input
+                type="text"
+                value={sec.buttonText || ""}
+                onChange={(e) => updateField(["textSections", idx, "buttonText"], e.target.value)}
+                className="border p-2 w-full rounded mt-1"
+              />
+            </label>
+
+            <label className="block">
+              Button Link:
+              <input
+                type="text"
+                value={sec.buttonLink || ""}
+                onChange={(e) => updateField(["textSections", idx, "buttonLink"], e.target.value)}
+                className="border p-2 w-full rounded mt-1"
+              />
+            </label>
+
+            <label className="block">
+              Custom Class:
+              <input
+                type="text"
+                value={sec.className || ""}
+                onChange={(e) => updateField(["textSections", idx, "className"], e.target.value)}
+                className="border p-2 w-full rounded mt-1"
+              />
+            </label>
+          </div>
+        ))}
+
+        <button
+          onClick={addTextSection}
+          className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
+        >
+          + Add Text Section
+        </button>
+      </section>
+
 
       <button
         onClick={save}
