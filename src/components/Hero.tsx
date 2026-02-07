@@ -46,7 +46,7 @@ export default function Hero({ hero }: { hero: any }) {
           {desktop[index] && (
             <div className="absolute inset-0 hidden md:block">
               <Image
-                src={desktop[index]}
+                src={desktop[index].src}
                 alt="Hero image"
                 fill
                 priority

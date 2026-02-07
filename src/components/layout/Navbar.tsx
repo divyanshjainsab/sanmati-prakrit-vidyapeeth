@@ -58,14 +58,18 @@ export default function Navbar() {
 }
 
 function NavLink({ item, onClick }: any) {
+  const isExternal = item.external;
+
   return (
-    <Link
+    <a
       href={item.href}
       onClick={onClick}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
       className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100"
     >
       {item.icon && <Icon name={item.icon} className="h-4 w-4" />}
       {item.label}
-    </Link>
+    </a>
   );
 }
