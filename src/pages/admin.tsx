@@ -5,7 +5,6 @@ import axios from "axios";
 import ImageInput from "@/components/ImageInput";
 
 type ImageAsset = { src: string; alt?: string };
-type Social = { type: "instagram" | "facebook" | "youtube"; url: string };
 type NavigationItem = { label: string; href: string; icon?: string; external?: boolean };
 type TextSection = {
   heading?: string;
@@ -25,7 +24,6 @@ type SiteConfig = {
   hero: { mobile: ImageAsset[]; desktop: ImageAsset[]; interval: number };
   navigation: NavigationItem[];
   textSections: TextSection[];
-  socials: Social[];
 };
 
 export default function AdminPanel() {
@@ -241,14 +239,14 @@ export default function AdminPanel() {
         <div className="space-y-2">
           <label className="font-medium">Mobile Image</label>
           <ImageInput
-            src={config.hero.mobile.src}
-            alt={config.hero.mobile.alt || ""}
+            src={config.hero.mobile[0].src}
+            alt={config.hero.mobile[0].alt || ""}
             onChange={(newSrc) => updateField(["hero", "mobile", "src"], newSrc)}
             placeholder="Upload Mobile Image"
           />
           <input
             placeholder="Alt Text (optional)"
-            value={config.hero.mobile.alt || ""}
+            value={config.hero.mobile[0].alt || ""}
             onChange={(e) => updateField(["hero", "mobile", "alt"], e.target.value)}
             className="border p-2 w-full rounded"
           />
@@ -262,13 +260,13 @@ export default function AdminPanel() {
               <ImageInput
                 src={img.src}
                 alt={img.alt || ""}
-                onChange={(newSrc) => updateField(["hero", "desktop", idx, "src"], newSrc)}
+                onChange={(newSrc) => updateField(["hero", "desktop", idx.toString(), "src"], newSrc)}
                 placeholder="Upload Desktop Image"
               />
               <input
                 placeholder="Alt Text (optional)"
                 value={img.alt || ""}
-                onChange={(e) => updateField(["hero", "desktop", idx, "alt"], e.target.value)}
+                onChange={(e) => updateField(["hero", "desktop", idx.toString(), "alt"], e.target.value)}
                 className="border p-2 w-full sm:w-1/2 rounded"
               />
               <button
@@ -298,28 +296,28 @@ export default function AdminPanel() {
             <input
               placeholder="Label"
               value={nav.label}
-              onChange={(e) => updateField(["navigation", idx, "label"], e.target.value)}
+              onChange={(e) => updateField(["navigation", idx.toString(), "label"], e.target.value)}
               className="border p-2 w-full sm:w-1/4 rounded"
             />
             <label className="font-medium w-full sm:w-auto">Href</label>
             <input
               placeholder="Href"
               value={nav.href}
-              onChange={(e) => updateField(["navigation", idx, "href"], e.target.value)}
+              onChange={(e) => updateField(["navigation", idx.toString(), "href"], e.target.value)}
               className="border p-2 w-full sm:w-1/4 rounded"
             />
             <label className="font-medium w-full sm:w-auto">Icon</label>
             <input
               placeholder="Icon"
               value={nav.icon || ""}
-              onChange={(e) => updateField(["navigation", idx, "icon"], e.target.value)}
+              onChange={(e) => updateField(["navigation", idx.toString(), "icon"], e.target.value)}
               className="border p-2 w-full sm:w-1/4 rounded"
             />
             <label className="flex items-center space-x-1">
               <input
                 type="checkbox"
                 checked={nav.external || false}
-                onChange={(e) => updateField(["navigation", idx, "external"], e.target.checked)}
+                onChange={(e) => updateField(["navigation", idx.toString(), "external"], e.target.checked)}
               />
               <span>External</span>
             </label>
@@ -336,44 +334,6 @@ export default function AdminPanel() {
           className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
         >
           Add Navigation
-        </button>
-      </section>
-
-      {/* Socials */}
-      <section className="border p-4 rounded shadow space-y-3">
-        <h3 className="font-bold text-lg">Socials</h3>
-        {config.socials.map((soc, idx) => (
-          <div key={idx} className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
-            <label className="font-medium w-full sm:w-auto">Type</label>
-            <select
-              value={soc.type}
-              onChange={(e) => updateField(["socials", idx, "type"], e.target.value)}
-              className="border p-2 w-full sm:w-1/4 rounded"
-            >
-              <option value="instagram">Instagram</option>
-              <option value="facebook">Facebook</option>
-              <option value="youtube">YouTube</option>
-            </select>
-            <label className="font-medium w-full sm:w-auto">URL</label>
-            <input
-              placeholder="URL"
-              value={soc.url}
-              onChange={(e) => updateField(["socials", idx, "url"], e.target.value)}
-              className="border p-2 w-full sm:w-3/4 rounded"
-            />
-            <button
-              onClick={() => removeItem(["socials"], idx)}
-              className="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          onClick={() => addItem(["socials"], { type: "instagram", url: "" })}
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
-        >
-          Add Social
         </button>
       </section>
 
@@ -397,7 +357,7 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.heading || ""}
-                onChange={(e) => updateField(["textSections", idx, "heading"], e.target.value)}
+                onChange={(e) => updateField(["textSections", idx.toString(), "heading"], e.target.value)}
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -407,7 +367,7 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.boldText || ""}
-                onChange={(e) => updateField(["textSections", idx, "boldText"], e.target.value)}
+                onChange={(e) => updateField(["textSections", idx.toString(), "boldText"], e.target.value)}
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -416,7 +376,7 @@ export default function AdminPanel() {
               Paragraph:
               <textarea
                 value={sec.paragraph || ""}
-                onChange={(e) => updateField(["textSections", idx, "paragraph"], e.target.value)}
+                onChange={(e) => updateField(["textSections", idx.toString(), "paragraph"], e.target.value)}
                 className="border p-2 w-full rounded mt-1"
                 rows={3}
               />
@@ -428,7 +388,7 @@ export default function AdminPanel() {
                 <input
                   type="color"
                   value={sec.bgColor || "#ffffff"}
-                  onChange={(e) => updateField(["textSections", idx, "bgColor"], e.target.value)}
+                  onChange={(e) => updateField(["textSections", idx.toString(), "bgColor"], e.target.value)}
                   className="ml-2 w-12 h-8 p-0 border-none"
                 />
               </label>
@@ -438,7 +398,7 @@ export default function AdminPanel() {
                 <input
                   type="color"
                   value={sec.textColor || "#000000"}
-                  onChange={(e) => updateField(["textSections", idx, "textColor"], e.target.value)}
+                  onChange={(e) => updateField(["textSections", idx.toString(), "textColor"], e.target.value)}
                   className="ml-2 w-12 h-8 p-0 border-none"
                 />
               </label>
@@ -449,7 +409,7 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.buttonText || ""}
-                onChange={(e) => updateField(["textSections", idx, "buttonText"], e.target.value)}
+                onChange={(e) => updateField(["textSections", idx.toString(), "buttonText"], e.target.value)}
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -459,7 +419,7 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.buttonLink || ""}
-                onChange={(e) => updateField(["textSections", idx, "buttonLink"], e.target.value)}
+                onChange={(e) => updateField(["textSections", idx.toString(), "buttonLink"], e.target.value)}
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -469,7 +429,7 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.className || ""}
-                onChange={(e) => updateField(["textSections", idx, "className"], e.target.value)}
+                onChange={(e) => updateField(["textSections", idx.toString(), "className"], e.target.value)}
                 className="border p-2 w-full rounded mt-1"
               />
             </label>

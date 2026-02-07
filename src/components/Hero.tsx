@@ -37,7 +37,7 @@ export default function Hero({ hero }: { hero: any }) {
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover"
+                className="object-contain"
               />
             </div>
           )}
@@ -51,7 +51,7 @@ export default function Hero({ hero }: { hero: any }) {
                 fill
                 priority
                 sizes="1200px"
-                className="object-cover"
+                className="object-contain"
               />
             </div>
           )}
