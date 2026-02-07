@@ -4,9 +4,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
   const { username, password } = req.body;
+  console.log(username, password)
 
   if (
-    true
+    username === process.env.ADMIN_USERNAME &&
+    password === process.env.ADMIN_PASSWORD
   ) {
     res.setHeader(
       "Set-Cookie",
