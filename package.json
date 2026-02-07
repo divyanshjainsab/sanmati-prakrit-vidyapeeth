@@ -12,6 +12,7 @@
     "@heroicons/react": "^2.2.0",
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
+    "lucide-react": "^0.563.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.1.6",
     "next": "16.1.6",

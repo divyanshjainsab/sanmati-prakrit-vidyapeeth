@@ -3,51 +3,58 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export default function Hero() {
-  const mobileImage = "/images/hero-moblie.jpeg";
+export default function Hero({ hero }: { hero: any }) {
+  if (!hero) return null;
 
-  const desktopImages = Array.from(
-    { length: 11 },
-    (_, i) => `/images/hero-desktop/${i + 1}.jpeg`
-  );
+  const {
+    mobile = [],
+    desktop = [],
+    interval = 2500
+  } = hero;
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [index, setIndex] = useState(0);
 
-  // Auto-scroll desktop images (only matters on md+)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % desktopImages.length);
-    }, 2500);
+    if (!desktop.length) return;
 
-    return () => clearInterval(interval);
-  }, [desktopImages.length]);
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % desktop.length);
+    }, interval);
+
+    return () => clearInterval(id);
+  }, [desktop.length, interval]);
 
   return (
-    <section className="flex h-[70vh] w-screen items-start justify-center pt-[2vh]">
-      {/* Wrapper */}
-      <div className="relative h-[70vh] w-[90vw] overflow-hidden rounded-xl">
-        {/* Mobile image (default) */}
-        <div className="block md:hidden">
-          <Image
-            src={mobileImage}
-            alt="Hero background"
-            fill
-            priority
-            sizes="90vw"
-            className="object-cover"
-          />
-        </div>
+    <section className="w-full overflow-hidden">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="relative h-[65vh] rounded-xl overflow-hidden">
+          {/* Mobile */}
+          {mobile[0] && (
+            <div className="absolute inset-0 md:hidden">
+              <Image
+                src={mobile[0].src}
+                alt={mobile[0].alt || "Hero image"}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover"
+              />
+            </div>
+          )}
 
-        {/* Desktop slideshow (md+) */}
-        <div className="hidden md:block">
-          <Image
-            src={desktopImages[currentIndex]}
-            alt="Hero background"
-            fill
-            priority
-            sizes="90vw"
-            className="object-cover"
-          />
+          {/* Desktop slideshow */}
+          {desktop[index] && (
+            <div className="absolute inset-0 hidden md:block">
+              <Image
+                src={desktop[index]}
+                alt="Hero image"
+                fill
+                priority
+                sizes="1200px"
+                className="object-cover"
+              />
+            </div>
+          )}
         </div>
       </div>
     </section>

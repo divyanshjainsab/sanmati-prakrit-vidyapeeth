@@ -1,16 +1,22 @@
-import Navbar from "../components/Navbar";
 import "./globals.css";
+import { getSiteConfig } from "@/lib/site-config";
+import { SiteConfigProvider } from "@/context/SiteConfigContext";
+import Navbar from "@/components/layout/Navbar";
 
-export default function RootLayout({
-  children,
+export default async function RootLayout({
+  children
 }: {
   children: React.ReactNode;
 }) {
+  const site = await getSiteConfig();
+
   return (
     <html lang="en">
-      <body>
-        <Navbar />
-        {children}
+      <body className="overflow-x-hidden">
+        <SiteConfigProvider value={site}>
+          <Navbar />
+          <main>{children}</main>
+        </SiteConfigProvider>
       </body>
     </html>
   );
