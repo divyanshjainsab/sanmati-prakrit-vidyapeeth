@@ -25,6 +25,12 @@ export type SiteConfig = {
     interval?: number;
   };
 
+  video?: {
+    url: string;
+    title?: string;
+    description?: string;
+  };
+
   navigation: {
     label: string;
     href: string;
@@ -33,18 +39,21 @@ export type SiteConfig = {
   }[];
 
   textSections: {
-      heading: string;
-      paragraph: string;
-      bgColor?: string;
-      textColor?: string;
-      buttonText?: string;
-      buttonLink?: string;
-      className?: string;
-      boldText?: string;
+    heading: string;
+    paragraph: string;
+    bgColor?: string;
+    textColor?: string;
+    buttonText?: string;
+    buttonLink?: string;
+    className?: string;
+    boldText?: string;
   }[];
 
   socials: {
     type: "instagram" | "facebook" | "youtube";
     url: string;
   }[];
+
+  // Free-form long-tail settings (per tenant) that don't have a typed field.
+  preferences?: Record<string, unknown>;
 };

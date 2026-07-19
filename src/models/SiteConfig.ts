@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const ImageSchema = new Schema(
   {
     src: { type: String, required: true },
-    alt: { type: String, required: true }
+    alt: { type: String, required: true },
   },
   { _id: false }
 );
@@ -14,21 +14,27 @@ const SiteConfigSchema = new Schema(
 
     meta: {
       name: { type: String, required: true },
-      logo: { type: ImageSchema, required: true }
+      logo: { type: ImageSchema, required: true },
     },
 
     contact: {
       phone: { type: String, required: true },
       whatsapp: {
         url: { type: String, required: true },
-        label: { type: String, required: true }
-      }
+        label: { type: String, required: true },
+      },
     },
 
     hero: {
       mobile: [ImageSchema],
       desktop: [ImageSchema],
-      interval: { type: Number, default: 2500 }
+      interval: { type: Number, default: 2500 },
+    },
+
+    video: {
+      url: { type: String, default: "" },
+      title: { type: String, default: "" },
+      description: { type: String, default: "" },
     },
 
     navigation: [
@@ -36,8 +42,8 @@ const SiteConfigSchema = new Schema(
         label: String,
         href: String,
         icon: String,
-        external: Boolean
-      }
+        external: Boolean,
+      },
     ],
 
     textSections: [
@@ -49,22 +55,24 @@ const SiteConfigSchema = new Schema(
         buttonText: String,
         buttonLink: String,
         className: String,
-        boldText: String
-      }
+        boldText: String,
+      },
     ],
 
     socials: [
       {
         type: {
           type: String,
-          enum: ["instagram", "facebook", "youtube"]
+          enum: ["instagram", "facebook", "youtube"],
         },
-        url: String
-      }
-    ]
+        url: String,
+      },
+    ],
+
+    // Free-form per-tenant settings; loosely typed on purpose.
+    preferences: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.SiteConfig ||
-  mongoose.model("SiteConfig", SiteConfigSchema);
+export default mongoose.models.SiteConfig || mongoose.model("SiteConfig", SiteConfigSchema);
