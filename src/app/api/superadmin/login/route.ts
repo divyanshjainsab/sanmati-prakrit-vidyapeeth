@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { verifySuperCredentials, superLoginCookie } from "@/lib/superadmin";
-import { isAdminHost } from "@/lib/tenant";
+import { verifySuperCredentials, superLoginCookie, superAdminHostAllowed } from "@/lib/superadmin";
 import { credentialsSchema } from "@/lib/auth";
 import { isRateLimited, recordFailedAttempt, clearAttempts } from "@/lib/rate-limit";
 import { clientIpFromRequest } from "@/lib/request-ip";
 
 export async function POST(req: Request) {
-  if (!isAdminHost(req.headers.get("host"))) {
+  if (!superAdminHostAllowed(req)) {
     return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
   }
 

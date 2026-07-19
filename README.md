@@ -99,6 +99,11 @@ every render. The panel and its API are only reachable on the admin subdomain
 
 Visit `http://admin.lvh.me:3000` (local) or `https://admin.<your-domain>` (prod).
 
+**Hosts without an admin subdomain** (e.g. a `*.vercel.app` URL where you can't
+add `admin.…`): set `SUPERADMIN_PATH_ACCESS=1` and the panel is served at
+`/superadmin` on the primary host instead (still gated by the super-admin
+login). It's read at build time (edge middleware), so set it before deploying.
+
 ### Local subdomain testing
 
 Set `NEXT_PUBLIC_ROOT_DOMAIN=lvh.me` (which resolves `*.lvh.me` → 127.0.0.1) and

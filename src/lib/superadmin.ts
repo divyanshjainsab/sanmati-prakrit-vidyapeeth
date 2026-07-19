@@ -2,6 +2,7 @@ import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { signSession, verifySession } from "@/lib/session";
 import { isAdminHost } from "@/lib/tenant";
+import { isSuperAdminPathAccessEnabled } from "@/lib/superadmin-access";
 
 /**
  * The platform super-admin: a single operator configured via env
@@ -65,12 +66,20 @@ export function isSuperAdminFromCookies(
 }
 
 /**
- * Guard for super-admin API routes: the request must be on the admin subdomain
+ * Whether the super-admin surface may be served for this request: on the
+ * admin subdomain, or anywhere when SUPERADMIN_PATH_ACCESS is enabled.
+ */
+export function superAdminHostAllowed(req: Request): boolean {
+  return isAdminHost(req.headers.get("host")) || isSuperAdminPathAccessEnabled();
+}
+
+/**
+ * Guard for super-admin API routes: the request must be allowed for this host
  * AND carry a valid super session. Returns a NextResponse to short-circuit
  * with, or null when allowed.
  */
 export function requireSuperAdmin(req: Request): NextResponse | null {
-  if (!isAdminHost(req.headers.get("host"))) {
+  if (!superAdminHostAllowed(req)) {
     return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
   }
   if (!isSuperAdminFromCookieHeader(req.headers.get("cookie"))) {

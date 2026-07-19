@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminHost } from "@/lib/tenant";
+import { isSuperAdminPathAccessEnabled } from "@/lib/superadmin-access";
 
 /**
  * Host-based routing only (no DB, no crypto → edge-safe):
  *  - On the admin subdomain, serve the super-admin panel at "/".
- *  - On any other host, hide the super-admin surface (404) so tenants and the
- *    public site can never reach it by path. Auth is still enforced in the
- *    super-admin handlers themselves; this is defense-in-depth.
+ *  - Otherwise hide the super-admin surface (404) so tenants and the public
+ *    site can't reach it by path — UNLESS SUPERADMIN_PATH_ACCESS is enabled,
+ *    in which case it's reachable at /superadmin on any host (still gated by
+ *    the super-admin login). Auth is always re-checked in the handlers; this
+ *    is defense-in-depth.
  */
 export function middleware(req: NextRequest) {
   const host = req.headers.get("host");
@@ -21,11 +24,12 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (
+  const isSuperSurface =
     pathname === "/superadmin" ||
     pathname.startsWith("/superadmin/") ||
-    pathname.startsWith("/api/superadmin")
-  ) {
+    pathname.startsWith("/api/superadmin");
+
+  if (isSuperSurface && !isSuperAdminPathAccessEnabled()) {
     return new NextResponse("Not found", { status: 404 });
   }
 

@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   verifySuperCredentials,
   superLoginCookie,
   superLogoutCookie,
   isSuperAdminFromCookieHeader,
   isSuperAdminFromCookies,
+  superAdminHostAllowed,
 } from "./superadmin";
 
 describe("superadmin", () => {
@@ -46,5 +47,28 @@ describe("superadmin", () => {
 
   it("logoutCookie clears the super cookie", () => {
     expect(superLogoutCookie()).toContain("Max-Age=0");
+  });
+});
+
+describe("superAdminHostAllowed", () => {
+  const reqWithHost = (host: string) => new Request("http://x/", { headers: { host } });
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN = "example.com";
+    delete process.env.SUPERADMIN_PATH_ACCESS;
+  });
+  afterEach(() => {
+    delete process.env.SUPERADMIN_PATH_ACCESS;
+  });
+
+  it("allows the admin subdomain and rejects other hosts by default", () => {
+    expect(superAdminHostAllowed(reqWithHost("admin.example.com"))).toBe(true);
+    expect(superAdminHostAllowed(reqWithHost("acme.example.com"))).toBe(false);
+  });
+
+  it("allows any host when SUPERADMIN_PATH_ACCESS is enabled", () => {
+    process.env.SUPERADMIN_PATH_ACCESS = "1";
+    expect(superAdminHostAllowed(reqWithHost("acme.example.com"))).toBe(true);
+    expect(superAdminHostAllowed(reqWithHost("sanmati-prakrit-vidyapeeth.vercel.app"))).toBe(true);
   });
 });

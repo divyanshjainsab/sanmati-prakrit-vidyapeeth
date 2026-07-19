@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { superLogoutCookie } from "@/lib/superadmin";
-import { isAdminHost } from "@/lib/tenant";
+import { superLogoutCookie, superAdminHostAllowed } from "@/lib/superadmin";
 
 export async function POST(req: Request) {
-  if (!isAdminHost(req.headers.get("host"))) {
+  if (!superAdminHostAllowed(req)) {
     return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
   }
   const res = NextResponse.json({ success: true });
