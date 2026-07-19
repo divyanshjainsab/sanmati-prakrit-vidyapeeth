@@ -3,8 +3,15 @@ import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { getRecentImages } from "@/lib/gallery";
 import { ROUTES } from "@/lib/routes";
+import type { Messages } from "@/lib/messages/types";
 
-export default async function GalleryPreview({ tenant }: { tenant: string }) {
+export default async function GalleryPreview({
+  tenant,
+  messages,
+}: {
+  tenant: string;
+  messages: Messages;
+}) {
   // Resilient: a gallery/DB hiccup should never take down the landing page.
   let images: Awaited<ReturnType<typeof getRecentImages>> = [];
   try {
@@ -19,9 +26,9 @@ export default async function GalleryPreview({ tenant }: { tenant: string }) {
     <section className="w-full bg-gradient-to-b from-white to-saffron-50 px-5 py-16 sm:px-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-10">
         <SectionHeading
-          eyebrow="Our Community"
-          title="Glimpses of the Vidyapeeth"
-          subtitle="Moments from our campus, ceremonies, and seva — a living record of our community's journey."
+          eyebrow={messages.galleryPreview.eyebrow}
+          title={messages.galleryPreview.title}
+          subtitle={messages.galleryPreview.subtitle}
         />
 
         <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -45,7 +52,7 @@ export default async function GalleryPreview({ tenant }: { tenant: string }) {
           href={ROUTES.gallery}
           className="rounded-full bg-maroon-800 px-8 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-maroon-900 hover:shadow-lg"
         >
-          View full gallery
+          {messages.galleryPreview.viewFull}
         </Link>
       </div>
     </section>

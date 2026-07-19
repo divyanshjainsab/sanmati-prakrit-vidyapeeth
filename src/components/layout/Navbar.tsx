@@ -7,6 +7,7 @@ import { useSiteConfig } from "@/context/SiteConfigContext";
 import Icon from "@/components/ui/Icon";
 import { isIconName } from "@/lib/icons";
 import { ROUTES } from "@/lib/routes";
+import LanguageToggle from "@/components/layout/LanguageToggle";
 import type { SiteConfig } from "@/types/site-config";
 
 type NavigationItem = SiteConfig["navigation"][number];
@@ -47,6 +48,9 @@ export default function Navbar() {
           {site.navigation.map((item) => (
             <NavLink key={item.href} item={item} />
           ))}
+          <span className="ml-2 border-l border-saffron-200 pl-2">
+            <LanguageToggle />
+          </span>
         </div>
       </nav>
 
@@ -56,6 +60,9 @@ export default function Navbar() {
             {site.navigation.map((item) => (
               <NavLink key={item.href} item={item} onClick={() => setOpen(false)} />
             ))}
+            <div className="pt-2">
+              <LanguageToggle />
+            </div>
           </div>
         </div>
       )}

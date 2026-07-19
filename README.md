@@ -71,6 +71,22 @@ This creates/updates the tenant's admin login and a default site config, so
 `acme.<root-domain>` renders immediately. The tenant admin then customizes
 everything (including the logo) at `/admin` on their own subdomain.
 
+### Localization (Hindi default)
+
+The UI and tenant content are localized, defaulting to **Hindi** until a tenant
+picks another language in `/admin` (stored in `preferences.locale`). Locale
+precedence is: visitor cookie override (the हिं / EN toggle in the navbar) →
+tenant default → Hindi. UI strings live in `src/lib/messages/{hi,en}.ts`.
+
+Tenant text content (site name, nav, hero, text sections, video) is
+**auto-translated on save**: when a translation provider is configured, the
+`/api/siteconfig` handler translates the content from the tenant's source
+language into the other locales and stores the result under `preferences.i18n`;
+the public site then overlays the right language per request. Translation is
+pluggable (`src/lib/translate.ts`) with a no-op default, so the app runs with no
+external dependency; set `TRANSLATION_PROVIDER=libretranslate` + `TRANSLATION_URL`
+(any LibreTranslate-compatible endpoint) to turn it on.
+
 ### Super-admin (fleet management)
 
 The `admin.<root-domain>` subdomain serves a platform super-admin panel to

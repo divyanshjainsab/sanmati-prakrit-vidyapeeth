@@ -3,6 +3,7 @@ import Icon from "@/components/ui/Icon";
 import { isIconName } from "@/lib/icons";
 import { ROUTES } from "@/lib/routes";
 import { SITE_TAGLINE } from "@/lib/site";
+import type { Messages } from "@/lib/messages/types";
 import type { SiteConfig } from "@/types/site-config";
 
 const SOCIAL_ICON: Record<SiteConfig["socials"][number]["type"], string> = {
@@ -11,7 +12,7 @@ const SOCIAL_ICON: Record<SiteConfig["socials"][number]["type"], string> = {
   youtube: "youtube",
 };
 
-export default function Footer({ site }: { site: SiteConfig }) {
+export default function Footer({ site, messages }: { site: SiteConfig; messages: Messages }) {
   const year = 2026;
 
   return (
@@ -24,19 +25,19 @@ export default function Footer({ site }: { site: SiteConfig }) {
         </div>
 
         {/* Explore */}
-        <nav aria-label="Footer" className="space-y-3">
+        <nav aria-label={messages.footer.explore} className="space-y-3">
           <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-saffron-400">
-            Explore
+            {messages.footer.explore}
           </h4>
           <ul className="space-y-2 text-sm">
             <li>
               <Link href={ROUTES.home} className="transition hover:text-saffron-300">
-                Home
+                {messages.nav.home}
               </Link>
             </li>
             <li>
               <Link href={ROUTES.gallery} className="transition hover:text-saffron-300">
-                Gallery
+                {messages.nav.gallery}
               </Link>
             </li>
             {site.navigation.map((item) => (
@@ -57,7 +58,7 @@ export default function Footer({ site }: { site: SiteConfig }) {
         {/* Contact */}
         <div className="space-y-3">
           <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-saffron-400">
-            Get in touch
+            {messages.footer.contact}
           </h4>
           <ul className="space-y-2 text-sm">
             {site.contact.phone && (
@@ -104,7 +105,7 @@ export default function Footer({ site }: { site: SiteConfig }) {
       </div>
 
       <div className="border-t border-cream/10 px-5 py-5 text-center text-xs text-cream/60 sm:px-8">
-        © {year} {site.meta.name}. All rights reserved.
+        © {year} {site.meta.name}. {messages.footer.rights}
       </div>
     </footer>
   );

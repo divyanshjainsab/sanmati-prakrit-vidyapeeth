@@ -6,6 +6,7 @@ type VideoEmbedProps = {
   embedUrl: string;
   thumbnailUrl: string | null;
   title: string;
+  playLabel: string;
 };
 
 /**
@@ -13,7 +14,7 @@ type VideoEmbedProps = {
  * and only loads the (Google Drive) iframe once the user clicks. Keeps the page
  * light and gives a familiar YouTube feel over a Drive-hosted video.
  */
-export default function VideoEmbed({ embedUrl, thumbnailUrl, title }: VideoEmbedProps) {
+export default function VideoEmbed({ embedUrl, thumbnailUrl, title, playLabel }: VideoEmbedProps) {
   const [playing, setPlaying] = useState(false);
 
   return (
@@ -30,7 +31,7 @@ export default function VideoEmbed({ embedUrl, thumbnailUrl, title }: VideoEmbed
         <button
           type="button"
           onClick={() => setPlaying(true)}
-          aria-label={`Play video: ${title}`}
+          aria-label={`${playLabel}: ${title}`}
           className="group absolute inset-0 h-full w-full cursor-pointer"
         >
           {thumbnailUrl ? (

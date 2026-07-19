@@ -2,12 +2,33 @@
 
 import { useState } from "react";
 
-type LoginFormProps = {
-  title?: string;
-  onSubmit: (username: string, password: string) => Promise<boolean>;
+export type LoginLabels = {
+  title: string;
+  username: string;
+  password: string;
+  submit: string;
+  submitting: string;
+  invalid: string;
 };
 
-export default function LoginForm({ title = "Admin Login", onSubmit }: LoginFormProps) {
+// English defaults so the form works outside the App Router i18n provider
+// (e.g. the Pages Router admin panel). Callers with a locale pass `labels`.
+const DEFAULT_LABELS: LoginLabels = {
+  title: "Admin Login",
+  username: "Username",
+  password: "Password",
+  submit: "Login",
+  submitting: "Logging in…",
+  invalid: "Invalid credentials",
+};
+
+type LoginFormProps = {
+  onSubmit: (username: string, password: string) => Promise<boolean>;
+  labels?: Partial<LoginLabels>;
+};
+
+export default function LoginForm({ onSubmit, labels }: LoginFormProps) {
+  const l = { ...DEFAULT_LABELS, ...labels };
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -19,52 +40,52 @@ export default function LoginForm({ title = "Admin Login", onSubmit }: LoginForm
     setError(null);
 
     const ok = await onSubmit(username, password);
-    if (!ok) setError("Invalid credentials");
+    if (!ok) setError(l.invalid);
 
     setSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <h1 className="text-2xl font-bold mb-4">{title}</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      <h1 className="mb-4 font-serif text-2xl font-bold text-maroon-800">{l.title}</h1>
+      <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
         <label htmlFor="login-username" className="sr-only">
-          Username
+          {l.username}
         </label>
         <input
           id="login-username"
           name="username"
           type="text"
           autoComplete="username"
-          placeholder="Username"
+          placeholder={l.username}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="border p-2 rounded"
+          className="rounded border p-2"
         />
         <label htmlFor="login-password" className="sr-only">
-          Password
+          {l.password}
         </label>
         <input
           id="login-password"
           name="password"
           type="password"
           autoComplete="current-password"
-          placeholder="Password"
+          placeholder={l.password}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 rounded"
+          className="rounded border p-2"
         />
         {error && (
-          <p role="alert" className="text-red-600 text-sm">
+          <p role="alert" className="text-sm text-red-600">
             {error}
           </p>
         )}
         <button
           type="submit"
           disabled={submitting}
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="rounded bg-maroon-800 py-2 font-semibold text-cream hover:bg-maroon-900 disabled:opacity-50"
         >
-          {submitting ? "Logging in..." : "Login"}
+          {submitting ? l.submitting : l.submit}
         </button>
       </form>
     </div>

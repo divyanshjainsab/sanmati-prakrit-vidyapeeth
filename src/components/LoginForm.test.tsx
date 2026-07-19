@@ -48,8 +48,9 @@ describe("LoginForm", () => {
     resolve(true);
   });
 
-  it("renders a custom title when provided", () => {
-    render(<LoginForm title="Upload Login" onSubmit={vi.fn()} />);
-    expect(screen.getByRole("heading", { name: "Upload Login" })).toBeInTheDocument();
+  it("renders localized labels when provided", () => {
+    render(<LoginForm onSubmit={vi.fn()} labels={{ title: "एडमिन लॉगिन", submit: "लॉगिन" }} />);
+    expect(screen.getByRole("heading", { name: "एडमिन लॉगिन" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "लॉगिन" })).toBeInTheDocument();
   });
 });

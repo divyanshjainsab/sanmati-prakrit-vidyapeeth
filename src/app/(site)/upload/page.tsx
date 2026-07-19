@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import LoginForm from "@/components/LoginForm";
 import { useSessionAuth } from "@/hooks/useSessionAuth";
+import { useI18n } from "@/components/I18nProvider";
 import { API_ROUTES } from "@/lib/routes";
 
 type UploadResult = {
@@ -13,6 +14,7 @@ type UploadResult = {
 };
 
 export default function UploadPage() {
+  const { messages } = useI18n();
   const { authenticated, loading: authLoading, login } = useSessionAuth();
 
   const [file, setFile] = useState<File | null>(null);
@@ -43,32 +45,34 @@ export default function UploadPage() {
       const data: UploadResult = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.message || "Upload failed");
+        setError(data.message || messages.upload.failed);
       } else {
         setResult(data);
       }
     } catch {
-      setError("Upload failed — check your connection and try again.");
+      setError(messages.upload.failed);
     } finally {
       setUploading(false);
     }
   };
 
-  if (authLoading) return <p>Loading...</p>;
+  if (authLoading) return <p className="p-8 text-center">{messages.common.loading}</p>;
 
   if (!authenticated) {
-    return <LoginForm onSubmit={login} />;
+    return <LoginForm onSubmit={login} labels={messages.login} />;
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <h1 className="text-2xl font-bold mb-4">Upload Image</h1>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      <h1 className="mb-4 font-serif text-2xl font-bold text-maroon-800">
+        {messages.upload.title}
+      </h1>
       <form
         onSubmit={handleUpload}
-        className="w-full max-w-md flex flex-col gap-4 border p-4 rounded-lg shadow"
+        className="flex w-full max-w-md flex-col gap-4 rounded-lg border p-4 shadow"
       >
         <label htmlFor="upload-file" className="sr-only">
-          Image file
+          {messages.upload.file}
         </label>
         <input
           id="upload-file"
@@ -78,33 +82,33 @@ export default function UploadPage() {
           className="block w-full"
         />
         <label htmlFor="upload-alt" className="sr-only">
-          Alt text (optional)
+          {messages.upload.alt}
         </label>
         <input
           id="upload-alt"
           type="text"
-          placeholder="Alt text (optional)"
+          placeholder={messages.upload.alt}
           value={alt}
           onChange={(e) => setAlt(e.target.value)}
-          className="border p-2 rounded"
+          className="rounded border p-2"
         />
         <button
           disabled={uploading || !file}
-          className="bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-lg bg-maroon-800 py-2 font-semibold text-cream hover:bg-maroon-900 disabled:opacity-50"
         >
-          {uploading ? "Uploading..." : "Upload"}
+          {uploading ? messages.upload.uploading : messages.upload.submit}
         </button>
       </form>
 
       {error && (
-        <p role="alert" className="mt-4 text-red-600 text-center">
+        <p role="alert" className="mt-4 text-center text-red-600">
           {error}
         </p>
       )}
 
       {result?.success && result.data && (
         <div className="mt-4 text-center">
-          <p className="font-medium mb-2">Uploaded Successfully:</p>
+          <p className="mb-2 font-medium">{messages.upload.success}</p>
           <div className="relative mx-auto w-full max-w-md aspect-video">
             <Image
               src={result.data.url}

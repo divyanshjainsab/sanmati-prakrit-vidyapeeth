@@ -5,6 +5,7 @@ import axios from "axios";
 import GalleryModal from "@/components/admin/GalleryModal";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { API_ROUTES } from "@/lib/routes";
+import { useI18n } from "@/components/I18nProvider";
 
 type GalleryImage = {
   url: string;
@@ -17,6 +18,7 @@ type Status = "loading" | "ready" | "error";
 const PAGE_SIZE = 24;
 
 export default function GalleryPage() {
+  const { messages } = useI18n();
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -72,22 +74,24 @@ export default function GalleryPage() {
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
         <div className="mb-12 flex justify-center">
           <SectionHeading
-            eyebrow="Our Community"
-            title="Gallery"
-            subtitle="Glimpses of our campus life, ceremonies, and service to the community — captured with gratitude."
+            eyebrow={messages.galleryPreview.eyebrow}
+            title={messages.gallery.title}
+            subtitle={messages.gallery.subtitle}
           />
         </div>
 
-        {status === "loading" && <p className="text-center text-maroon-700/70">Loading images…</p>}
+        {status === "loading" && (
+          <p className="text-center text-maroon-700/70">{messages.gallery.loading}</p>
+        )}
 
         {status === "error" && (
           <p role="alert" className="text-center text-red-700">
-            Couldn&apos;t load the gallery. Please try refreshing the page.
+            {messages.gallery.error}
           </p>
         )}
 
         {status === "ready" && images.length === 0 && (
-          <p className="text-center text-maroon-700/70">No photos yet.</p>
+          <p className="text-center text-maroon-700/70">{messages.gallery.empty}</p>
         )}
 
         {status === "ready" && images.length > 0 && (
@@ -118,7 +122,7 @@ export default function GalleryPage() {
                   disabled={loadingMore}
                   className="rounded-full bg-maroon-800 px-8 py-3 text-sm font-semibold text-cream shadow-md transition hover:bg-maroon-900 disabled:opacity-50"
                 >
-                  {loadingMore ? "Loading…" : "Load more"}
+                  {loadingMore ? messages.gallery.loadingMore : messages.gallery.loadMore}
                 </button>
               </div>
             )}

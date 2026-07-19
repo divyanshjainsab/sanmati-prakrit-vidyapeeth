@@ -8,7 +8,10 @@ import { useSessionAuth } from "@/hooks/useSessionAuth";
 import { setIn, pushIn, removeIn } from "@/lib/set-in";
 import { ICONS } from "@/lib/icons";
 import { API_ROUTES } from "@/lib/routes";
+import { LOCALES } from "@/lib/i18n";
 import type { SiteConfig } from "@/types/site-config";
+
+const LANGUAGE_LABELS: Record<string, string> = { hi: "हिन्दी (Hindi)", en: "English" };
 
 type ConfigState = "loading" | "ready" | "not-found" | "error";
 
@@ -40,6 +43,7 @@ export default function AdminPanel() {
         // Normalize optional blocks that older documents may not have, so the
         // editor always has something to bind to.
         if (!loaded.video) loaded.video = { url: "", title: "", description: "" };
+        if (!loaded.preferences) loaded.preferences = {};
         setConfig(loaded);
         setConfigState("ready");
       })
@@ -107,6 +111,30 @@ export default function AdminPanel() {
           Logout
         </button>
       </div>
+
+      {/* Site Language */}
+      <section className="border p-4 rounded shadow space-y-3">
+        <h3 className="font-bold text-lg">Site Language</h3>
+        <p className="text-sm text-gray-500">
+          Default language for this site (Hindi unless changed). Content you enter is
+          auto-translated into the other languages on save when translation is configured.
+        </p>
+        <label htmlFor="site-locale" className="font-medium">
+          Default language
+        </label>
+        <select
+          id="site-locale"
+          value={(config.preferences?.locale as string) ?? "hi"}
+          onChange={(e) => updateField(["preferences", "locale"], e.target.value)}
+          className="border p-2 w-full sm:w-64 rounded"
+        >
+          {LOCALES.map((l) => (
+            <option key={l} value={l}>
+              {LANGUAGE_LABELS[l] ?? l}
+            </option>
+          ))}
+        </select>
+      </section>
 
       {/* Meta */}
       <section className="border p-4 rounded shadow space-y-3">
