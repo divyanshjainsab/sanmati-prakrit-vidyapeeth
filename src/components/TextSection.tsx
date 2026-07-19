@@ -7,7 +7,7 @@ import type { SiteConfig } from "@/types/site-config";
 type TextSectionItem = SiteConfig["textSections"][number];
 
 export default function TextSection() {
-  const { textSections } = useSiteConfig() as SiteConfig;
+  const { textSections } = useSiteConfig();
 
   if (!textSections?.length) return null;
 

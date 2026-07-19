@@ -5,50 +5,56 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import Icon from "@/components/ui/Icon";
+import { isIconName } from "@/lib/icons";
+import { ROUTES } from "@/lib/routes";
+import type { SiteConfig } from "@/types/site-config";
+
+type NavigationItem = SiteConfig["navigation"][number];
 
 export default function Navbar() {
   const site = useSiteConfig();
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white">
-      <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <Image
-            src={site.meta.logo.src}
-            alt={site.meta.logo.alt}
-            width={36}
-            height={36}
-            priority
-          />
-          <span className="sm:block font-semibold">
+    <header className="sticky top-0 z-50 border-b border-saffron-200/70 bg-cream/95 backdrop-blur">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <Link href={ROUTES.home} className="flex items-center gap-2.5">
+          {site.meta.logo?.src && (
+            <Image
+              src={site.meta.logo.src}
+              alt={site.meta.logo.alt}
+              width={40}
+              height={40}
+              priority
+              className="rounded-full ring-1 ring-saffron-200"
+            />
+          )}
+          <span className="font-serif text-lg font-bold text-maroon-800 sm:text-xl">
             {site.meta.name}
           </span>
         </Link>
 
         <button
-          onClick={() => setOpen(v => !v)}
-          className="lg:hidden p-2"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={open}
+          className="p-2 text-maroon-800 lg:hidden"
         >
           ☰
         </button>
 
-        <div className="hidden lg:flex items-center gap-1">
-          {site.navigation.map(item => (
+        <div className="hidden items-center gap-1 lg:flex">
+          {site.navigation.map((item) => (
             <NavLink key={item.href} item={item} />
           ))}
         </div>
       </nav>
 
       {open && (
-        <div className="lg:hidden border-t bg-white">
-          <div className="flex flex-col px-4 py-3 gap-1">
-            {site.navigation.map(item => (
-              <NavLink
-                key={item.href}
-                item={item}
-                onClick={() => setOpen(false)}
-              />
+        <div className="border-t border-saffron-200/70 bg-cream lg:hidden">
+          <div className="flex flex-col gap-1 px-4 py-3">
+            {site.navigation.map((item) => (
+              <NavLink key={item.href} item={item} onClick={() => setOpen(false)} />
             ))}
           </div>
         </div>
@@ -57,7 +63,7 @@ export default function Navbar() {
   );
 }
 
-function NavLink({ item, onClick }: any) {
+function NavLink({ item, onClick }: { item: NavigationItem; onClick?: () => void }) {
   const isExternal = item.external;
 
   return (
@@ -66,9 +72,9 @@ function NavLink({ item, onClick }: any) {
       onClick={onClick}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100"
+      className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-maroon-800 transition hover:bg-saffron-100 hover:text-maroon-900"
     >
-      {item.icon && <Icon name={item.icon} className="h-4 w-4" />}
+      {item.icon && isIconName(item.icon) && <Icon name={item.icon} className="h-4 w-4" />}
       {item.label}
     </a>
   );

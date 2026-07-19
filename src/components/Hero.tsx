@@ -2,15 +2,12 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import type { SiteConfig } from "@/types/site-config";
 
-export default function Hero({ hero }: { hero: any }) {
-  if (!hero) return null;
-
-  const {
-    mobile = [],
-    desktop = [],
-    interval = 2500
-  } = hero;
+export default function Hero({ hero }: { hero: SiteConfig["hero"] | undefined }) {
+  const mobile = hero?.mobile ?? [];
+  const desktop = hero?.desktop ?? [];
+  const interval = hero?.interval && hero.interval > 0 ? hero.interval : 2500;
 
   const [index, setIndex] = useState(0);
 
@@ -23,6 +20,8 @@ export default function Hero({ hero }: { hero: any }) {
 
     return () => clearInterval(id);
   }, [desktop.length, interval]);
+
+  if (!hero) return null;
 
   return (
     <section className="w-full overflow-hidden">

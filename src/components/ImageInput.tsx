@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import axios from "axios";
 import ImageModal from "./ImageModal";
+import { API_ROUTES } from "@/lib/routes";
 
 type ImageInputProps = {
   src: string;
@@ -13,7 +14,6 @@ type ImageInputProps = {
 export default function ImageInput({ src, alt, onChange, placeholder }: ImageInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [url, setUrl] = useState(src || "");
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleUploadClick = () => fileInputRef.current?.click();
@@ -28,10 +28,9 @@ export default function ImageInput({ src, alt, onChange, placeholder }: ImageInp
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await axios.post("/api/admin-upload", formData);
+      const res = await axios.post(API_ROUTES.adminUpload, formData);
       if (res.data.success) {
-        setUrl(res.data.url);
-        onChange(res.data.url);
+        onChange(res.data.data.url);
       } else {
         alert("Upload failed");
       }
@@ -40,11 +39,11 @@ export default function ImageInput({ src, alt, onChange, placeholder }: ImageInp
       console.error(err);
     } finally {
       setLoading(false);
+      e.target.value = "";
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value);
     onChange(e.target.value);
   };
 
@@ -53,11 +52,11 @@ export default function ImageInput({ src, alt, onChange, placeholder }: ImageInp
       <input
         type="text"
         placeholder={placeholder || "Image URL"}
-        value={url}
+        value={src}
         onChange={handleInputChange}
         className="border p-2 rounded flex-1 w-full sm:w-auto"
       />
-      {url ? (
+      {src ? (
         <button
           type="button"
           onClick={handlePreviewClick}
@@ -69,7 +68,8 @@ export default function ImageInput({ src, alt, onChange, placeholder }: ImageInp
         <button
           type="button"
           onClick={handleUploadClick}
-          className="bg-green-500 text-white px-3 py-1 rounded flex-shrink-0"
+          disabled={loading}
+          className="bg-green-500 text-white px-3 py-1 rounded flex-shrink-0 disabled:opacity-50"
         >
           {loading ? "Uploading..." : "Upload"}
         </button>
@@ -82,9 +82,7 @@ export default function ImageInput({ src, alt, onChange, placeholder }: ImageInp
         onChange={handleFileChange}
       />
 
-      {modalOpen && url && (
-        <ImageModal src={url} alt={alt} onClose={() => setModalOpen(false)} />
-      )}
+      {modalOpen && src && <ImageModal src={src} alt={alt} onClose={() => setModalOpen(false)} />}
     </div>
   );
 }

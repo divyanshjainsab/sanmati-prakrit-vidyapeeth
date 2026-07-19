@@ -38,7 +38,7 @@ export default function TextSection({
       <h2
         className="
           max-w-3xl
-          text-2xl font-bold
+          font-serif text-2xl font-bold
           leading-tight
           sm:text-3xl md:text-4xl
         "
@@ -59,9 +59,7 @@ export default function TextSection({
 
       {/* Bold Highlight */}
       {boldText && (
-        <p className="max-w-3xl text-lg font-semibold text-green-600 sm:text-xl">
-          {boldText}
-        </p>
+        <p className="max-w-3xl text-lg font-semibold text-saffron-600 sm:text-xl">{boldText}</p>
       )}
 
       {/* Button */}
@@ -70,12 +68,12 @@ export default function TextSection({
           onClick={() => router.push(buttonLink)}
           className="
             mt-4
-            rounded-lg
-            bg-blue-600 px-8 py-3
-            text-sm font-semibold text-white
+            rounded-full
+            bg-maroon-800 px-8 py-3
+            text-sm font-semibold text-cream
             shadow-md
             transition
-            hover:bg-blue-700 hover:shadow-lg
+            hover:bg-maroon-900 hover:shadow-lg
             active:scale-95
           "
         >

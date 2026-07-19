@@ -3,170 +3,107 @@ import "../app/globals.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import ImageInput from "@/components/ImageInput";
+import LoginForm from "@/components/LoginForm";
+import { useSessionAuth } from "@/hooks/useSessionAuth";
+import { setIn, pushIn, removeIn } from "@/lib/set-in";
+import { ICONS } from "@/lib/icons";
+import { API_ROUTES } from "@/lib/routes";
+import type { SiteConfig } from "@/types/site-config";
 
-type ImageAsset = { src: string; alt?: string };
-type NavigationItem = { label: string; href: string; icon?: string; external?: boolean };
-type TextSection = {
-  heading?: string;
-  paragraph?: string;
-  bgColor?: string;
-  textColor?: string;
-  buttonText?: string;
-  buttonLink?: string;
-  className?: string;
-  boldText?: string;
-};
+type ConfigState = "loading" | "ready" | "not-found" | "error";
 
-type SiteConfig = {
-  _id: string;
-  meta: { name: string; logo: ImageAsset };
-  contact: { phone: string; whatsapp: { url: string; label: string } };
-  hero: { mobile: ImageAsset[]; desktop: ImageAsset[]; interval: number };
-  navigation: NavigationItem[];
-  textSections: TextSection[];
+const DEFAULT_TEXT_SECTION = {
+  heading: "",
+  paragraph: "",
+  bgColor: "#ffffff",
+  textColor: "#000000",
+  buttonText: "",
+  buttonLink: "",
+  className: "",
+  boldText: "",
 };
 
 export default function AdminPanel() {
+  const { authenticated, loading: authLoading, login, logout } = useSessionAuth();
   const [config, setConfig] = useState<SiteConfig | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [auth, setAuth] = useState(false);
-  const [credentials, setCredentials] = useState({ username: "", password: "" });
-
-  const addTextSection = () => {
-    setConfig((prev) => {
-      if (!prev) return prev;
-      const newConfig = { ...prev, textSections: [...prev.textSections] };
-      newConfig.textSections.push({
-        heading: "",
-        paragraph: "",
-        bgColor: "#ffffff",
-        textColor: "#000000",
-        buttonText: "",
-        buttonLink: "",
-        className: "",
-        boldText: "",
-      });
-      return newConfig;
-    });
-  };
-
-  const removeTextSection = (idx: number) => {
-    setConfig((prev) => {
-      if (!prev) return prev;
-      const newConfig = { ...prev, textSections: [...prev.textSections] };
-      newConfig.textSections.splice(idx, 1);
-      return newConfig;
-    });
-  };
+  const [configState, setConfigState] = useState<ConfigState>("loading");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!authenticated) return;
+
+    setConfigState("loading");
     axios
-      .get("/api/siteconfig")
+      .get(API_ROUTES.siteConfig)
       .then((res) => {
-        setConfig(res.data);
-        setAuth(true);
+        const loaded: SiteConfig = res.data.data;
+        // Normalize optional blocks that older documents may not have, so the
+        // editor always has something to bind to.
+        if (!loaded.video) loaded.video = { url: "", title: "", description: "" };
+        setConfig(loaded);
+        setConfigState("ready");
       })
-      .catch(() => setAuth(false))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch((err) => {
+        setConfigState(err?.response?.status === 404 ? "not-found" : "error");
+      });
+  }, [authenticated]);
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  const updateField = (path: string[], value: unknown) => {
+    setConfig((prev) => (prev ? setIn(prev, path, value) : prev));
+  };
 
-  if (!auth) {
-    const login = async () => {
-      try {
-        await axios.post("/api/auth", credentials);
-        setAuth(true);
-        const res = await axios.get("/api/siteconfig");
-        setConfig(res.data);
-      } catch {
-        alert("Invalid credentials");
-      }
-    };
+  const addItem = (path: string[], item: unknown) => {
+    setConfig((prev) => (prev ? pushIn(prev, path, item) : prev));
+  };
 
+  const removeItem = (path: string[], index: number) => {
+    setConfig((prev) => (prev ? removeIn(prev, path, index) : prev));
+  };
+
+  if (authLoading) return <div className="p-4">Loading...</div>;
+
+  if (!authenticated) {
+    return <LoginForm onSubmit={login} />;
+  }
+
+  if (configState === "loading") return <div className="p-4">Loading config...</div>;
+
+  if (configState === "not-found") {
     return (
-      <div className="p-8 max-w-md mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Admin Login</h2>
-        <input
-          placeholder="Username"
-          value={credentials.username}
-          onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-          className="border p-2 mb-2 w-full rounded"
-        />
-        <input
-          placeholder="Password"
-          type="password"
-          value={credentials.password}
-          onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-          className="border p-2 mb-4 w-full rounded"
-        />
-        <button
-          onClick={login}
-          className="bg-blue-500 text-white px-4 py-2 w-full rounded"
-        >
-          Login
-        </button>
+      <div className="p-4">
+        No site configuration exists yet. Run <code>npm run seed</code> to create the initial
+        configuration.
       </div>
     );
   }
 
-  if (!config) return <div className="p-4">No config loaded</div>;
+  if (configState === "error" || !config) {
+    return (
+      <div className="p-4">
+        Failed to load site config. Check the server/database and try refreshing.
+      </div>
+    );
+  }
 
   const save = async () => {
+    setSaving(true);
     try {
-      await axios.post("/api/siteconfig", config);
+      await axios.post(API_ROUTES.siteConfig, config);
       alert("Config saved successfully!");
     } catch {
       alert("Failed to save config.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const logout = async () => {
-    await axios.post("/api/logout");
-    setAuth(false);
-  };
-
-  const updateField = (path: string[], value: any) => {
-    setConfig((prev) => {
-      if (!prev) return prev;
-      const newConfig = { ...prev };
-      let cur: any = newConfig;
-      for (let i = 0; i < path.length - 1; i++) cur = cur[path[i]];
-      cur[path[path.length - 1]] = value;
-      return newConfig;
-    });
-  };
-
-  const addItem = (path: string[], item: any) => {
-    setConfig((prev) => {
-      if (!prev) return prev;
-      const newConfig = { ...prev };
-      let cur: any = newConfig;
-      for (let i = 0; i < path.length; i++) cur = cur[path[i]];
-      cur.push(item);
-      return newConfig;
-    });
-  };
-
-  const removeItem = (path: string[], index: number) => {
-    setConfig((prev) => {
-      if (!prev) return prev;
-      const newConfig = { ...prev };
-      let cur: any = newConfig;
-      for (let i = 0; i < path.length; i++) cur = cur[path[i]];
-      cur.splice(index, 1);
-      return newConfig;
-    });
-  };
+  const mobileImage = config.hero.mobile[0];
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">Admin Panel</h2>
-        <button
-          onClick={logout}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-        >
+        <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded">
           Logout
         </button>
       </div>
@@ -174,8 +111,11 @@ export default function AdminPanel() {
       {/* Meta */}
       <section className="border p-4 rounded shadow space-y-3">
         <h3 className="font-bold text-lg">Meta</h3>
-        <label className="font-medium">Website Name</label>
+        <label htmlFor="meta-name" className="font-medium">
+          Website Name
+        </label>
         <input
+          id="meta-name"
           placeholder="Website Name"
           value={config.meta.name}
           onChange={(e) => updateField(["meta", "name"], e.target.value)}
@@ -188,8 +128,11 @@ export default function AdminPanel() {
           onChange={(newSrc) => updateField(["meta", "logo", "src"], newSrc)}
           placeholder="Upload Logo"
         />
-        <label className="font-medium">Logo Alt Text (optional)</label>
+        <label htmlFor="meta-logo-alt" className="font-medium">
+          Logo Alt Text (optional)
+        </label>
         <input
+          id="meta-logo-alt"
           placeholder="Alt Text"
           value={config.meta.logo.alt || ""}
           onChange={(e) => updateField(["meta", "logo", "alt"], e.target.value)}
@@ -200,22 +143,31 @@ export default function AdminPanel() {
       {/* Contact */}
       <section className="border p-4 rounded shadow space-y-3">
         <h3 className="font-bold text-lg">Contact</h3>
-        <label className="font-medium">Phone Number</label>
+        <label htmlFor="contact-phone" className="font-medium">
+          Phone Number
+        </label>
         <input
+          id="contact-phone"
           placeholder="Phone Number"
           value={config.contact.phone}
           onChange={(e) => updateField(["contact", "phone"], e.target.value)}
           className="border p-2 w-full rounded"
         />
-        <label className="font-medium">WhatsApp URL</label>
+        <label htmlFor="contact-whatsapp-url" className="font-medium">
+          WhatsApp URL
+        </label>
         <input
+          id="contact-whatsapp-url"
           placeholder="WhatsApp URL"
           value={config.contact.whatsapp.url}
           onChange={(e) => updateField(["contact", "whatsapp", "url"], e.target.value)}
           className="border p-2 w-full rounded"
         />
-        <label className="font-medium">WhatsApp Label</label>
+        <label htmlFor="contact-whatsapp-label" className="font-medium">
+          WhatsApp Label
+        </label>
         <input
+          id="contact-whatsapp-label"
           placeholder="WhatsApp Label"
           value={config.contact.whatsapp.label}
           onChange={(e) => updateField(["contact", "whatsapp", "label"], e.target.value)}
@@ -226,47 +178,83 @@ export default function AdminPanel() {
       {/* Hero */}
       <section className="border p-4 rounded shadow space-y-4">
         <h3 className="font-bold text-lg">Hero Section</h3>
-        <label className="font-medium">Interval (ms)</label>
+        <label htmlFor="hero-interval" className="font-medium">
+          Interval (ms)
+        </label>
         <input
+          id="hero-interval"
           type="number"
+          min={500}
           placeholder="Interval"
-          value={config.hero.interval}
-          onChange={(e) => updateField(["hero", "interval"], Number(e.target.value))}
+          value={config.hero.interval ?? 2500}
+          onChange={(e) =>
+            updateField(["hero", "interval"], Math.max(500, Number(e.target.value) || 2500))
+          }
           className="border p-2 w-32 rounded"
         />
 
         {/* Mobile Image */}
         <div className="space-y-2">
           <label className="font-medium">Mobile Image</label>
-          <ImageInput
-            src={config.hero.mobile[0].src}
-            alt={config.hero.mobile[0].alt || ""}
-            onChange={(newSrc) => updateField(["hero", "mobile", "src"], newSrc)}
-            placeholder="Upload Mobile Image"
-          />
-          <input
-            placeholder="Alt Text (optional)"
-            value={config.hero.mobile[0].alt || ""}
-            onChange={(e) => updateField(["hero", "mobile", "alt"], e.target.value)}
-            className="border p-2 w-full rounded"
-          />
+          {mobileImage ? (
+            <>
+              <ImageInput
+                src={mobileImage.src}
+                alt={mobileImage.alt || ""}
+                onChange={(newSrc) => updateField(["hero", "mobile", "0", "src"], newSrc)}
+                placeholder="Upload Mobile Image"
+              />
+              <div className="flex gap-2 items-center">
+                <input
+                  aria-label="Mobile image alt text"
+                  placeholder="Alt Text (optional)"
+                  value={mobileImage.alt || ""}
+                  onChange={(e) => updateField(["hero", "mobile", "0", "alt"], e.target.value)}
+                  className="border p-2 flex-1 rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeItem(["hero", "mobile"], 0)}
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                >
+                  Remove
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => addItem(["hero", "mobile"], { src: "", alt: "" })}
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Add Mobile Image
+            </button>
+          )}
         </div>
 
         {/* Desktop Images */}
         <div className="space-y-3">
           <label className="font-medium">Desktop Images</label>
           {config.hero.desktop.map((img, idx) => (
-            <div key={idx} className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+            <div
+              key={idx}
+              className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0"
+            >
               <ImageInput
                 src={img.src}
                 alt={img.alt || ""}
-                onChange={(newSrc) => updateField(["hero", "desktop", idx.toString(), "src"], newSrc)}
+                onChange={(newSrc) =>
+                  updateField(["hero", "desktop", idx.toString(), "src"], newSrc)
+                }
                 placeholder="Upload Desktop Image"
               />
               <input
+                aria-label={`Desktop image ${idx + 1} alt text`}
                 placeholder="Alt Text (optional)"
                 value={img.alt || ""}
-                onChange={(e) => updateField(["hero", "desktop", idx.toString(), "alt"], e.target.value)}
+                onChange={(e) =>
+                  updateField(["hero", "desktop", idx.toString(), "alt"], e.target.value)
+                }
                 className="border p-2 w-full sm:w-1/2 rounded"
               />
               <button
@@ -286,38 +274,97 @@ export default function AdminPanel() {
         </div>
       </section>
 
+      {/* Video (Google Drive) */}
+      <section className="border p-4 rounded shadow space-y-3">
+        <h3 className="font-bold text-lg">Landing Video</h3>
+        <p className="text-sm text-gray-500">
+          Paste a Google Drive share link (Anyone with the link → Viewer). It is embedded on the
+          landing page with a YouTube-style player.
+        </p>
+        <label htmlFor="video-url" className="font-medium">
+          Google Drive Link
+        </label>
+        <input
+          id="video-url"
+          placeholder="https://drive.google.com/file/d/.../view"
+          value={config.video?.url ?? ""}
+          onChange={(e) => updateField(["video", "url"], e.target.value)}
+          className="border p-2 w-full rounded"
+        />
+        <label htmlFor="video-title" className="font-medium">
+          Title
+        </label>
+        <input
+          id="video-title"
+          placeholder="e.g. Welcome to our Vidyapeeth"
+          value={config.video?.title ?? ""}
+          onChange={(e) => updateField(["video", "title"], e.target.value)}
+          className="border p-2 w-full rounded"
+        />
+        <label htmlFor="video-description" className="font-medium">
+          Description (optional)
+        </label>
+        <textarea
+          id="video-description"
+          placeholder="A short line shown under the video"
+          value={config.video?.description ?? ""}
+          onChange={(e) => updateField(["video", "description"], e.target.value)}
+          className="border p-2 w-full rounded"
+          rows={2}
+        />
+      </section>
 
       {/* Navigation */}
       <section className="border p-4 rounded shadow space-y-3">
         <h3 className="font-bold text-lg">Navigation</h3>
         {config.navigation.map((nav, idx) => (
-          <div key={idx} className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
-            <label className="font-medium w-full sm:w-auto">Label</label>
+          <div
+            key={idx}
+            className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0"
+          >
+            <label htmlFor={`nav-label-${idx}`} className="font-medium w-full sm:w-auto">
+              Label
+            </label>
             <input
+              id={`nav-label-${idx}`}
               placeholder="Label"
               value={nav.label}
               onChange={(e) => updateField(["navigation", idx.toString(), "label"], e.target.value)}
               className="border p-2 w-full sm:w-1/4 rounded"
             />
-            <label className="font-medium w-full sm:w-auto">Href</label>
+            <label htmlFor={`nav-href-${idx}`} className="font-medium w-full sm:w-auto">
+              Href
+            </label>
             <input
+              id={`nav-href-${idx}`}
               placeholder="Href"
               value={nav.href}
               onChange={(e) => updateField(["navigation", idx.toString(), "href"], e.target.value)}
               className="border p-2 w-full sm:w-1/4 rounded"
             />
-            <label className="font-medium w-full sm:w-auto">Icon</label>
-            <input
-              placeholder="Icon"
+            <label htmlFor={`nav-icon-${idx}`} className="font-medium w-full sm:w-auto">
+              Icon
+            </label>
+            <select
+              id={`nav-icon-${idx}`}
               value={nav.icon || ""}
               onChange={(e) => updateField(["navigation", idx.toString(), "icon"], e.target.value)}
               className="border p-2 w-full sm:w-1/4 rounded"
-            />
+            >
+              <option value="">None</option>
+              {Object.keys(ICONS).map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
             <label className="flex items-center space-x-1">
               <input
                 type="checkbox"
                 checked={nav.external || false}
-                onChange={(e) => updateField(["navigation", idx.toString(), "external"], e.target.checked)}
+                onChange={(e) =>
+                  updateField(["navigation", idx.toString(), "external"], e.target.checked)
+                }
               />
               <span>External</span>
             </label>
@@ -341,12 +388,10 @@ export default function AdminPanel() {
       <section className="border p-4 rounded shadow space-y-3">
         <h3 className="font-bold text-lg">Text Sections</h3>
         {config.textSections.map((sec, idx) => (
-          <div
-            key={idx}
-            className="border p-3 rounded space-y-2 relative bg-gray-50"
-          >
+          <div key={idx} className="border p-3 rounded space-y-2 relative bg-gray-50">
             <button
-              onClick={() => removeTextSection(idx)}
+              onClick={() => removeItem(["textSections"], idx)}
+              aria-label="Remove section"
               className="absolute top-2 right-2 text-red-600 font-bold"
             >
               ×
@@ -357,7 +402,9 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.heading || ""}
-                onChange={(e) => updateField(["textSections", idx.toString(), "heading"], e.target.value)}
+                onChange={(e) =>
+                  updateField(["textSections", idx.toString(), "heading"], e.target.value)
+                }
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -367,7 +414,9 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.boldText || ""}
-                onChange={(e) => updateField(["textSections", idx.toString(), "boldText"], e.target.value)}
+                onChange={(e) =>
+                  updateField(["textSections", idx.toString(), "boldText"], e.target.value)
+                }
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -376,7 +425,9 @@ export default function AdminPanel() {
               Paragraph:
               <textarea
                 value={sec.paragraph || ""}
-                onChange={(e) => updateField(["textSections", idx.toString(), "paragraph"], e.target.value)}
+                onChange={(e) =>
+                  updateField(["textSections", idx.toString(), "paragraph"], e.target.value)
+                }
                 className="border p-2 w-full rounded mt-1"
                 rows={3}
               />
@@ -388,7 +439,9 @@ export default function AdminPanel() {
                 <input
                   type="color"
                   value={sec.bgColor || "#ffffff"}
-                  onChange={(e) => updateField(["textSections", idx.toString(), "bgColor"], e.target.value)}
+                  onChange={(e) =>
+                    updateField(["textSections", idx.toString(), "bgColor"], e.target.value)
+                  }
                   className="ml-2 w-12 h-8 p-0 border-none"
                 />
               </label>
@@ -398,7 +451,9 @@ export default function AdminPanel() {
                 <input
                   type="color"
                   value={sec.textColor || "#000000"}
-                  onChange={(e) => updateField(["textSections", idx.toString(), "textColor"], e.target.value)}
+                  onChange={(e) =>
+                    updateField(["textSections", idx.toString(), "textColor"], e.target.value)
+                  }
                   className="ml-2 w-12 h-8 p-0 border-none"
                 />
               </label>
@@ -409,7 +464,9 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.buttonText || ""}
-                onChange={(e) => updateField(["textSections", idx.toString(), "buttonText"], e.target.value)}
+                onChange={(e) =>
+                  updateField(["textSections", idx.toString(), "buttonText"], e.target.value)
+                }
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -419,7 +476,9 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.buttonLink || ""}
-                onChange={(e) => updateField(["textSections", idx.toString(), "buttonLink"], e.target.value)}
+                onChange={(e) =>
+                  updateField(["textSections", idx.toString(), "buttonLink"], e.target.value)
+                }
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -429,7 +488,9 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={sec.className || ""}
-                onChange={(e) => updateField(["textSections", idx.toString(), "className"], e.target.value)}
+                onChange={(e) =>
+                  updateField(["textSections", idx.toString(), "className"], e.target.value)
+                }
                 className="border p-2 w-full rounded mt-1"
               />
             </label>
@@ -437,19 +498,19 @@ export default function AdminPanel() {
         ))}
 
         <button
-          onClick={addTextSection}
+          onClick={() => addItem(["textSections"], DEFAULT_TEXT_SECTION)}
           className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
         >
           + Add Text Section
         </button>
       </section>
 
-
       <button
         onClick={save}
-        className="mt-6 bg-green-500 text-white px-6 py-3 rounded text-lg"
+        disabled={saving}
+        className="mt-6 bg-green-500 text-white px-6 py-3 rounded text-lg disabled:opacity-50"
       >
-        Save Config
+        {saving ? "Saving..." : "Save Config"}
       </button>
     </div>
   );

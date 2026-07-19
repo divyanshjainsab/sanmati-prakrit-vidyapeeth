@@ -1,15 +1,26 @@
 @import "tailwindcss";
 
-:root {
-  --background: 255 255 255;
-  --foreground: 23 23 23;
-}
+/*
+ * Brand palette for the institute — a warm, spiritual saffron / maroon / cream
+ * scheme drawn from Jain visual tradition. Exposed as Tailwind color tokens
+ * (bg-saffron-500, text-maroon-800, bg-cream, …) with automatic opacity
+ * modifiers (bg-cream/10, text-maroon-700/80, …).
+ */
+@theme {
+  --color-cream: #fbf6ee;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 10 10 10;
-    --foreground: 237 237 237;
-  }
+  --color-saffron-50: #fff7ed;
+  --color-saffron-100: #ffeedb;
+  --color-saffron-200: #fcd9a8;
+  --color-saffron-300: #f7be6b;
+  --color-saffron-400: #f0a23c;
+  --color-saffron-500: #e8871e;
+  --color-saffron-600: #c86d12;
+  --color-saffron-700: #9c520b;
+
+  --color-maroon-700: #7c2d12;
+  --color-maroon-800: #611f0c;
+  --color-maroon-900: #4a1708;
 }
 
 html,
@@ -19,7 +30,6 @@ body {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  overflow-x: hidden;
+  background: var(--color-cream);
+  color: var(--color-maroon-900);
 }

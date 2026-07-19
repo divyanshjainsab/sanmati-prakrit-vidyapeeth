@@ -7,25 +7,19 @@ const SiteConfigContext = createContext<SiteConfig | null>(null);
 
 export function SiteConfigProvider({
   value,
-  children
+  children,
 }: {
   value: SiteConfig;
   children: React.ReactNode;
 }) {
-  return (
-    <SiteConfigContext.Provider value={value}>
-      {children}
-    </SiteConfigContext.Provider>
-  );
+  return <SiteConfigContext.Provider value={value}>{children}</SiteConfigContext.Provider>;
 }
 
 export function useSiteConfig(): SiteConfig {
   const ctx = useContext(SiteConfigContext);
 
   if (!ctx) {
-    throw new Error(
-      "useSiteConfig must be used inside <SiteConfigProvider>"
-    );
+    throw new Error("useSiteConfig must be used inside <SiteConfigProvider>");
   }
 
   return ctx;

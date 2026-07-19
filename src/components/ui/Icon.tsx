@@ -7,5 +7,6 @@ type Props = {
 
 export default function Icon({ name, ...props }: Props) {
   const Comp = ICONS[name];
+  if (!Comp) return null;
   return <Comp {...props} />;
 }

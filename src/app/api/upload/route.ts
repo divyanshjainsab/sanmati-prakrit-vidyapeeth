@@ -1,39 +1,42 @@
 import { NextResponse } from "next/server";
-import cloudinary from "@/lib/cloudinary";
+import { uploadBuffer } from "@/lib/cloudinary";
 import dbConnect from "@/lib/mongoose";
+import { validateImageFile } from "@/lib/upload-validation";
+import { apiOk, apiError, requireSession } from "@/lib/api-response";
 
 import Image from "@/models/Image";
 
 export async function POST(req: Request) {
+  const auth = requireSession(req);
+  if (auth instanceof NextResponse) return auth;
+  const { tenant } = auth;
+
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const validation = validateImageFile(formData.get("file"));
 
-    if (!file) {
-      return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 });
+    if (!validation.ok) {
+      return apiError(validation.message, 400);
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const alt = formData.get("alt");
+    const buffer = Buffer.from(await validation.file.arrayBuffer());
 
     await dbConnect();
 
-    const uploadResult: any = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream({ folder: "gallery" }, (err, result) => {
-          if (err) reject(err);
-          resolve(result);
-        })
-        .end(buffer);
-    });
+    // Namespace assets per tenant so uploads never mix across sites.
+    const uploadResult = await uploadBuffer(buffer, `gallery/${tenant}`);
 
     const saved = await Image.create({
+      tenant,
       url: uploadResult.secure_url,
       publicId: uploadResult.public_id,
+      alt: typeof alt === "string" ? alt : "",
     });
 
-    return NextResponse.json({ success: true, data: saved });
+    return apiOk({ data: saved });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ success: false, message: "Upload failed" }, { status: 500 });
+    return apiError("Upload failed", 500);
   }
 }

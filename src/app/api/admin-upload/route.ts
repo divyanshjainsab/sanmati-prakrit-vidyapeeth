@@ -1,29 +1,29 @@
 import { NextResponse } from "next/server";
-import cloudinary from "@/lib/cloudinary";
+import { uploadBuffer } from "@/lib/cloudinary";
+import { validateImageFile } from "@/lib/upload-validation";
+import { apiOk, apiError, requireSession } from "@/lib/api-response";
 
 export async function POST(req: Request) {
+  const auth = requireSession(req);
+  if (auth instanceof NextResponse) return auth;
+  const { tenant } = auth;
+
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const validation = validateImageFile(formData.get("file"));
 
-    if (!file) {
-      return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 });
+    if (!validation.ok) {
+      return apiError(validation.message, 400);
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = Buffer.from(await validation.file.arrayBuffer());
 
-    const uploadResult: any = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream({ folder: "siteconfig" }, (err, result) => {
-          if (err) reject(err);
-          resolve(result);
-        })
-        .end(buffer);
-    });
+    // Site-config assets (logo, hero images, …) namespaced per tenant.
+    const uploadResult = await uploadBuffer(buffer, `siteconfig/${tenant}`);
 
-    return NextResponse.json({ success: true, url: uploadResult.secure_url });
+    return apiOk({ data: { url: uploadResult.secure_url } });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ success: false, message: "Upload failed" }, { status: 500 });
+    return apiError("Upload failed", 500);
   }
 }
