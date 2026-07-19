@@ -1,6 +1,16 @@
-version: "3.8"
-
 services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   web:
     image: node:20
     working_dir: /app
@@ -10,4 +20,12 @@ services:
       - .:/app
     env_file:
       - .env
-    command: sh -c "npm install && npm run dev"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/sanmati
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: sh -c "npm install && npm run seed && npm run dev"
+
+volumes:
+  mongo-data:

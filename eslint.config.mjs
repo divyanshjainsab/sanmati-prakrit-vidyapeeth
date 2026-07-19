@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated / vendored output:
+    "coverage/**",
+    "node_modules/**",
   ]),
 ]);
 
