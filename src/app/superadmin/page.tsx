@@ -27,6 +27,9 @@ export default function SuperAdminPage() {
   // create form
   const [form, setForm] = useState({ slug: "", name: "", username: "", password: "" });
 
+  // shared platform footer (common to all tenants)
+  const [settings, setSettings] = useState({ copyright: "", enrollNote: "" });
+
   const loadTenants = useCallback(async () => {
     const res = await axios.get("/api/superadmin/tenants");
     setTenants(res.data.data);
@@ -41,7 +44,12 @@ export default function SuperAdminPage() {
   }, []);
 
   useEffect(() => {
-    if (authed) loadTenants().catch(() => setError("Failed to load tenants"));
+    if (!authed) return;
+    loadTenants().catch(() => setError("Failed to load tenants"));
+    axios
+      .get("/api/superadmin/settings")
+      .then((res) => setSettings(res.data.data))
+      .catch(() => {});
   }, [authed, loadTenants]);
 
   const login = async (e: React.FormEvent) => {
@@ -106,6 +114,20 @@ export default function SuperAdminPage() {
     void withBusy(async () => {
       await axios.delete(`/api/superadmin/tenants/${t.slug}`);
     });
+  };
+
+  const saveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await axios.patch("/api/superadmin/settings", settings);
+      setSettings(res.data.data);
+    } catch {
+      setError("Failed to save footer");
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (loading) return <div className="p-8 text-maroon-800">Loading…</div>;
@@ -207,6 +229,45 @@ export default function SuperAdminPage() {
             className="rounded bg-saffron-600 px-4 py-2 font-semibold text-white hover:bg-saffron-700 disabled:opacity-50"
           >
             Create
+          </button>
+        </form>
+      </section>
+
+      {/* Shared footer (all tenants) */}
+      <section className="rounded-xl border border-saffron-200 bg-white p-5 shadow-sm">
+        <h2 className="font-semibold text-maroon-800">Shared footer</h2>
+        <p className="mb-3 text-xs text-maroon-700/70">Shown at the bottom of every tenant site.</p>
+        <form onSubmit={saveSettings} className="space-y-3">
+          <div>
+            <label htmlFor="pf-enroll" className="mb-1 block text-sm font-medium text-maroon-800">
+              Enrollment / contact note
+            </label>
+            <textarea
+              id="pf-enroll"
+              rows={2}
+              value={settings.enrollNote}
+              onChange={(e) => setSettings({ ...settings, enrollNote: e.target.value })}
+              placeholder="Admissions open — call +91-… or email admissions@…"
+              className="w-full rounded border p-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="pf-copy" className="mb-1 block text-sm font-medium text-maroon-800">
+              Copyright line
+            </label>
+            <input
+              id="pf-copy"
+              value={settings.copyright}
+              onChange={(e) => setSettings({ ...settings, copyright: e.target.value })}
+              placeholder="© 2026 Sanmati Prakrit Vidyapeeth Trust"
+              className="w-full rounded border p-2"
+            />
+          </div>
+          <button
+            disabled={busy}
+            className="rounded bg-saffron-600 px-4 py-2 font-semibold text-white hover:bg-saffron-700 disabled:opacity-50"
+          >
+            Save footer
           </button>
         </form>
       </section>

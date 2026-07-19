@@ -4,6 +4,7 @@ import { isIconName } from "@/lib/icons";
 import { ROUTES } from "@/lib/routes";
 import { SITE_TAGLINE } from "@/lib/site";
 import type { Messages } from "@/lib/messages/types";
+import type { PlatformSettings } from "@/lib/platform-settings";
 import type { SiteConfig } from "@/types/site-config";
 
 const SOCIAL_ICON: Record<SiteConfig["socials"][number]["type"], string> = {
@@ -12,7 +13,15 @@ const SOCIAL_ICON: Record<SiteConfig["socials"][number]["type"], string> = {
   youtube: "youtube",
 };
 
-export default function Footer({ site, messages }: { site: SiteConfig; messages: Messages }) {
+export default function Footer({
+  site,
+  messages,
+  platform,
+}: {
+  site: SiteConfig;
+  messages: Messages;
+  platform: PlatformSettings;
+}) {
   const year = 2026;
 
   return (
@@ -104,8 +113,10 @@ export default function Footer({ site, messages }: { site: SiteConfig; messages:
         </div>
       </div>
 
-      <div className="border-t border-cream/10 px-5 py-5 text-center text-xs text-cream/60 sm:px-8">
-        © {year} {site.meta.name}. {messages.footer.rights}
+      {/* Platform-wide footer note (managed by the super-admin, shown on every tenant). */}
+      <div className="space-y-1 border-t border-cream/10 px-5 py-6 text-center text-xs text-cream/60 sm:px-8">
+        {platform.enrollNote && <p className="text-cream/80">{platform.enrollNote}</p>}
+        <p>{platform.copyright || `© ${year} ${site.meta.name}. ${messages.footer.rights}`}</p>
       </div>
     </footer>
   );

@@ -2,11 +2,11 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 
+// Plain default title (no template) so it doesn't wrap the per-tenant titles
+// set by the (site) layout's generateMetadata. Applies only to non-tenant
+// routes (super-admin, not-found).
 export const metadata: Metadata = {
-  title: {
-    default: SITE_NAME,
-    template: `%s · ${SITE_NAME}`,
-  },
+  title: SITE_NAME,
   description: SITE_DESCRIPTION,
 };
 
